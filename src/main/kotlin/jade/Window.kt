@@ -57,6 +57,9 @@ object Window {
         glfwSetMouseButtonCallback(glfwWindow, MouseListener::mouseButtonCallback)
         glfwSetScrollCallback(glfwWindow, MouseListener::scrollCallback)
         glfwSetKeyCallback(glfwWindow, KeyListener::keyCallback)
+        glfwSetJoystickCallback(GamepadListener::gamepadCallback)
+
+        GamepadListener.getAlreadyConnectedGamepads()
 
         glfwMakeContextCurrent(glfwWindow)
 
@@ -85,6 +88,7 @@ object Window {
 
             // if (KeyListener.isKeyDown(GLFW_KEY_SPACE)) println("SPAAAAAAAAAAAAAAACE !!!!!")
             // if (MouseListener.isButtonDown(GLFW_MOUSE_BUTTON_LEFT)) println("mouse position: (x: " + MouseListener.getX() + ", y: " + MouseListener.getY() + ")")
+            // if (GamepadListener.isButtonDown(GLFW_JOYSTICK_1, GLFW_GAMEPAD_BUTTON_A)) println("BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB")
 
             glfwPollEvents()
         }
