@@ -69,6 +69,9 @@ object Window {
         glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE) // Window will be invisible until it1 created
         glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE)
         glfwWindowHint(GLFW_MAXIMIZED, GLFW_FALSE)
+        glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+        glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2);
+        glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
         // Create Window
         glfwWindow = glfwCreateWindow(width, height, title, NULL, NULL)
@@ -100,7 +103,7 @@ object Window {
         // bindings available for use.
         GL.createCapabilities()
 
-        changeScene(0)
+        changeScene(1)
     }
 
     fun loop() {
