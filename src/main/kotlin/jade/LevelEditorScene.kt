@@ -15,7 +15,7 @@ class LevelEditorScene : Scene() {
             "{\n" +
             "    fColor = aColor;\n" +
             "    gl_Position = vec4(aPos, 1.0);\n" +
-            "}"
+            "}\n"
 
     private val fragmentShaderScr = "#version 330 core\n" +
             "\n" +
@@ -26,7 +26,7 @@ class LevelEditorScene : Scene() {
             "void main()\n" +
             "{\n" +
             "    color = fColor;\n" +
-            "}"
+            "}\n"
 
     private var vertexId = 0
     private var fragmentId = 0
@@ -34,10 +34,10 @@ class LevelEditorScene : Scene() {
 
     private val vertexArray = floatArrayOf(
         // Positions                 // Color
-        0.5f, -0.5f, 0f,             1f, 1f, 0f, 1f, // Bottom Right
-        -0.5f, 0.5f, 0f,             0f, 1f, 1f, 1f, // Top Left
-        0.5f, 0.5f, 0f,              1f, 0f, 1f, 1f, // Top Right
-        -0.5f, -0.5f, 0f,            0f, 1f, 0f, 1f // Bottom Left
+        0.5f, -0.5f, 0f,             1f, 0f, 0f, 1f, // Bottom Right
+        -0.5f, 0.5f, 0f,             0f, 1f, 0f, 1f, // Top Left
+        0.5f, 0.5f, 0f,              0f, 0f, 1f, 1f, // Top Right
+        -0.5f, -0.5f, 0f,            0f, 0f, 0f, 1f // Bottom Left
     )
 
     // IMPORTANT: This must be in count-clockwise order
@@ -56,6 +56,9 @@ class LevelEditorScene : Scene() {
         // Pass shader source to GPU
         glShaderSource(vertexId, vertexShaderScr)
 
+        // Compile Shader
+        glCompileShader(vertexId)
+
         // Check for errors
         var success = glGetShaderi(vertexId, GL_COMPILE_STATUS)
         if (success == GL_FALSE) {
@@ -69,6 +72,9 @@ class LevelEditorScene : Scene() {
         fragmentId = glCreateShader(GL_FRAGMENT_SHADER)
         // Pass shader source to GPU
         glShaderSource(fragmentId, fragmentShaderScr)
+
+        // Compile Shader
+        glCompileShader(fragmentId)
 
         // Check for errors
         success = glGetShaderi(fragmentId, GL_COMPILE_STATUS)

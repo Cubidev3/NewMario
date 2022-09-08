@@ -102,11 +102,11 @@ object Window {
         // creates the GLCapabilities instance and makes the OpenGL
         // bindings available for use.
         GL.createCapabilities()
-
-        changeScene(1)
     }
 
     fun loop() {
+        changeScene(1)
+
         // Delta Time calculation values
         var beginTime = Time.getTime()
         var endTime = 0f
