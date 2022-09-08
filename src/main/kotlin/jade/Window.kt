@@ -1,5 +1,6 @@
 package jade
 
+import Renderer.Shader
 import Util.Time
 import org.lwjgl.Version
 import org.lwjgl.glfw.Callbacks.glfwFreeCallbacks
