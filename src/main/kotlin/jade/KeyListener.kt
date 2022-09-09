@@ -17,6 +17,11 @@ object KeyListener {
         return keyPressed[key]
     }
 
+    fun getKetStrength(key: Int) : Float {
+        if (isKeyDown(key)) return 1f
+        return 0f
+    }
+
     private fun isKeyValid(key: Int) : Boolean {
         return key >= 0 && key <= keyPressed.size
     }

@@ -1,7 +1,9 @@
 package jade
 
 import Renderer.Shader
+import org.joml.Vector2f
 import org.lwjgl.BufferUtils
+import org.lwjgl.glfw.GLFW.*
 import org.lwjgl.opengl.GL30.*
 
 class LevelEditorScene : Scene() {
@@ -9,10 +11,10 @@ class LevelEditorScene : Scene() {
 
     private val vertexArray = floatArrayOf(
         // Positions                 // Color
-        0.5f, -0.5f, 0f,             1f, 0f, 0f, 1f, // Bottom Right
-        -0.5f, 0.5f, 0f,             0f, 1f, 0f, 1f, // Top Left
-        0.5f, 0.5f, 0f,              0f, 0f, 1f, 1f, // Top Right
-        -0.5f, -0.5f, 0f,            0f, 0f, 0f, 1f // Bottom Left
+        1280f, 0f, 0f,             1f, 0f, 0f, 1f, // Bottom Right
+        0f, 672f, 0f,             0f, 1f, 0f, 1f, // Top Left
+        1280f, 672f, 0f,              0f, 0f, 1f, 1f, // Top Right
+        0f, 0f, 0f,            0f, 0f, 0f, 1f // Bottom Left
     )
 
     // IMPORTANT: This must be in count-clockwise order
@@ -24,6 +26,8 @@ class LevelEditorScene : Scene() {
     private var vaoId = 0
     private var vboId = 0
     private var eboId = 0
+
+    private val moveSpeed = 100f
     override fun init() {
         defaultShader.compile()
 
@@ -64,9 +68,11 @@ class LevelEditorScene : Scene() {
     }
 
     override fun update(deltaTime: Float) {
+        move(deltaTime)
         // Bind Program
         defaultShader.use()
-
+        defaultShader.uploadMatrix4f("uProjection", camera.getProjectionMatrix())
+        defaultShader.uploadMatrix4f("uView", camera.getViewMatrix())
         // Bind vao
         glBindVertexArray(vaoId)
 
@@ -84,5 +90,22 @@ class LevelEditorScene : Scene() {
         glBindVertexArray(0)
 
         defaultShader.detach()
+
+        if (GamepadListener.isButtonDown(GLFW_JOYSTICK_1, GLFW_GAMEPAD_BUTTON_B)) println("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")
+    }
+
+    fun move(deltaTime: Float) {
+        var direction = Vector2f(
+            KeyListener.getKetStrength(GLFW_KEY_D) - KeyListener.getKetStrength(GLFW_KEY_A),
+            KeyListener.getKetStrength(GLFW_KEY_W) - KeyListener.getKetStrength(GLFW_KEY_S)
+        )
+        if (!direction.isZero()) direction.normalize()
+
+        camera.cameraPosition.x += direction.x * moveSpeed * deltaTime
+        camera.cameraPosition.y += direction.y * moveSpeed * deltaTime
+    }
+
+    private fun Vector2f.isZero() : Boolean {
+        return x == 0f && y == 0f
     }
 }

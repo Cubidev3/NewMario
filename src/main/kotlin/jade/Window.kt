@@ -52,7 +52,7 @@ object Window {
         terminateGLFW()
     }
 
-    fun init() {
+    private fun init() {
         setupErrorCallback()
 
         initializeGLFW()
@@ -78,7 +78,7 @@ object Window {
         GL.createCapabilities()
     }
 
-    fun loop() {
+    private fun loop() {
         changeScene(1)
 
         // Delta Time calculation values
