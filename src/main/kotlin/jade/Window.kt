@@ -47,55 +47,28 @@ object Window {
         init()
         loop()
 
-        // Free Memory
-        glfwFreeCallbacks(glfwWindow)
-        glfwDestroyWindow(glfwWindow)
-
-        // Terminate GLFW and free error callback
-        glfwTerminate()
-        glfwSetErrorCallback(null)?.free()
+        // This Happens when Window Should Close
+        freeMemory()
+        terminateGLFW()
     }
 
     fun init() {
-        // Setup Error Callback
-        GLFWErrorCallback.createPrint(System.err).set()
+        setupErrorCallback()
 
-        // Initializing GLFW
-        if (!glfwInit()) {
-            throw IllegalStateException("Could not initialize GLFW.")
-        }
+        initializeGLFW()
 
-        // Setup Window Configs
-        glfwDefaultWindowHints()
-        glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE) // Window will be invisible until it1 created
-        glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE)
-        glfwWindowHint(GLFW_MAXIMIZED, GLFW_FALSE)
-        glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-        glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2);
-        glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+        setupWindowHints()
+        createWindow()
 
-        // Create Window
-        glfwWindow = glfwCreateWindow(width, height, title, NULL, NULL)
-        if (glfwWindow == NULL) {
-            throw IllegalStateException("Could not create GLFW window")
-        }
+        setupMouseListener()
+        setupKeyListener()
+        setupGamepadListener()
 
-        // Setup Listeners Callback
-        glfwSetCursorPosCallback(glfwWindow, MouseListener::cursorPositionCallback)
-        glfwSetMouseButtonCallback(glfwWindow, MouseListener::mouseButtonCallback)
-        glfwSetScrollCallback(glfwWindow, MouseListener::scrollCallback)
-        glfwSetKeyCallback(glfwWindow, KeyListener::keyCallback)
-        glfwSetJoystickCallback(GamepadListener::gamepadCallback)
+        makeContextCurrent()
 
-        GamepadListener.getAlreadyConnectedGamepads()
+        enableVsync()
 
-        glfwMakeContextCurrent(glfwWindow)
-
-        // Enable v-sync
-        glfwSwapInterval(1)
-
-        // Make window visible
-        glfwShowWindow(glfwWindow)
+        showWindow()
 
         // This line is critical for LWJGL's interoperation with GLFW's
         // OpenGL context, or any context that is managed externally.
@@ -110,7 +83,6 @@ object Window {
 
         // Delta Time calculation values
         var beginTime = Time.getTime()
-        var endTime = 0f
         var deltaTime = -1f
 
         while (!glfwWindowShouldClose(glfwWindow)) {
@@ -121,19 +93,75 @@ object Window {
 
             glfwPollEvents()
 
-            // if (KeyListener.isKeyDown(GLFW_KEY_SPACE)) println("SPAAAAAAAAAAAAAAACE !!!!!")
-            // if (MouseListener.isButtonDown(GLFW_MOUSE_BUTTON_LEFT)) println("mouse position: (x: " + MouseListener.getX() + ", y: " + MouseListener.getY() + ")")
-            // if (GamepadListener.isButtonDown(GLFW_JOYSTICK_1, GLFW_GAMEPAD_BUTTON_A)) println("BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB")
-
             if (deltaTime >= 0) {
                 currentScene.update(deltaTime)
             }
 
             glfwSwapBuffers(glfwWindow)
 
-            endTime = Time.getTime()
+            val endTime = Time.getTime()
             deltaTime = endTime - beginTime
             beginTime = endTime
         }
+    }
+
+    private fun setupErrorCallback() {
+        GLFWErrorCallback.createPrint(System.err).set()
+    }
+    private fun initializeGLFW() {
+        if (!glfwInit()) {
+            throw IllegalStateException("Could not initialize GLFW.")
+        }
+    }
+
+    private fun setupWindowHints() {
+        glfwDefaultWindowHints()
+        glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE) // Window will be invisible until it1 created
+        glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE)
+        glfwWindowHint(GLFW_MAXIMIZED, GLFW_FALSE)
+        glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+        glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2);
+        glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+    }
+
+    private fun setupMouseListener() {
+        glfwSetMouseButtonCallback(glfwWindow, MouseListener::mouseButtonCallback)
+        glfwSetCursorPosCallback(glfwWindow, MouseListener::cursorPositionCallback)
+        glfwSetScrollCallback(glfwWindow, MouseListener::scrollCallback)
+    }
+
+    private fun setupKeyListener() {
+        glfwSetKeyCallback(glfwWindow, KeyListener::keyCallback)
+    }
+
+    private fun setupGamepadListener() {
+        glfwSetJoystickCallback(GamepadListener::gamepadCallback)
+        GamepadListener.getAlreadyConnectedGamepads()
+    }
+    private fun createWindow() {
+        glfwWindow = glfwCreateWindow(width, height, title, NULL, NULL)
+        if (glfwWindow == NULL) {
+            throw IllegalStateException("Could not create GLFW window.")
+        }
+    }
+
+    private fun makeContextCurrent() {
+        glfwMakeContextCurrent(glfwWindow)
+    }
+    private fun enableVsync() {
+        glfwSwapInterval(1)
+    }
+
+    private fun showWindow() {
+        glfwShowWindow(glfwWindow)
+    }
+    private fun freeMemory() {
+        glfwFreeCallbacks(glfwWindow)
+        glfwDestroyWindow(glfwWindow)
+    }
+
+    private fun terminateGLFW() {
+        glfwTerminate()
+        glfwSetErrorCallback(null)?.free()
     }
 }
