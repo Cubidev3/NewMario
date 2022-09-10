@@ -1,6 +1,7 @@
 package jade
 
 import Renderer.Shader
+import Util.Time
 import org.joml.Vector2f
 import org.lwjgl.BufferUtils
 import org.lwjgl.glfw.GLFW.*
@@ -55,7 +56,7 @@ class LevelEditorScene : Scene() {
         // Add vertex attribute pointers
         val positionsSize = 3
         val colorsSize = 4
-        val floatSizeInBytes = 4
+        val floatSizeInBytes = Float.SIZE_BYTES
         val vertexSizeInBytes = (positionsSize + colorsSize) * floatSizeInBytes
 
         // Position Attribute
@@ -73,6 +74,7 @@ class LevelEditorScene : Scene() {
         defaultShader.use()
         defaultShader.uploadMatrix4f("uProjection", camera.getProjectionMatrix())
         defaultShader.uploadMatrix4f("uView", camera.getViewMatrix())
+        defaultShader.uploadFloat("uTime", Time.getTime())
         // Bind vao
         glBindVertexArray(vaoId)
 
@@ -95,7 +97,7 @@ class LevelEditorScene : Scene() {
     }
 
     fun move(deltaTime: Float) {
-        var direction = Vector2f(
+        val direction = Vector2f(
             KeyListener.getKetStrength(GLFW_KEY_D) - KeyListener.getKetStrength(GLFW_KEY_A),
             KeyListener.getKetStrength(GLFW_KEY_W) - KeyListener.getKetStrength(GLFW_KEY_S)
         )
