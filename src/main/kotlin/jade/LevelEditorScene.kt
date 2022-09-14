@@ -1,21 +1,24 @@
 package jade
 
 import Renderer.Shader
+import Renderer.Texture
 import Util.Time
 import org.joml.Vector2f
 import org.lwjgl.BufferUtils
 import org.lwjgl.glfw.GLFW.*
+import org.lwjgl.opengl.GL20
 import org.lwjgl.opengl.GL30.*
 
 class LevelEditorScene : Scene() {
     private val defaultShader = Shader("assets/shaders/default.glsl")
+    private val testTexture = Texture("assets/textures/sample.png")
 
     private val vertexArray = floatArrayOf(
-        // Positions                 // Color
-        1280f, 0f, 0f,             1f, 0f, 0f, 1f, // Bottom Right
-        0f, 672f, 0f,             0f, 1f, 0f, 1f, // Top Left
-        1280f, 672f, 0f,              0f, 0f, 1f, 1f, // Top Right
-        0f, 0f, 0f,            0f, 0f, 0f, 1f // Bottom Left
+        // Positions                 // Color                  // UV Coordinates
+        1280f, 0f, 0f,             1f, 0f, 0f, 1f,             1f, 0f, // Bottom Right
+        0f, 672f, 0f,             0f, 1f, 0f, 1f,              0f, 1f, // Top Left
+        1280f, 672f, 0f,              0f, 0f, 1f, 1f,          1f, 1f, // Top Right
+        0f, 0f, 0f,            0f, 0f, 0f, 1f,                 0f, 0f  // Bottom Left
     )
 
     // IMPORTANT: This must be in count-clockwise order
@@ -56,8 +59,9 @@ class LevelEditorScene : Scene() {
         // Add vertex attribute pointers
         val positionsSize = 3
         val colorsSize = 4
+        val uvSize = 2
         val floatSizeInBytes = Float.SIZE_BYTES
-        val vertexSizeInBytes = (positionsSize + colorsSize) * floatSizeInBytes
+        val vertexSizeInBytes = (positionsSize + colorsSize + uvSize) * floatSizeInBytes
 
         // Position Attribute
         glVertexAttribPointer(0, positionsSize, GL_FLOAT, false, vertexSizeInBytes, 0)
@@ -66,6 +70,10 @@ class LevelEditorScene : Scene() {
         // Color Attribute
         glVertexAttribPointer(1, colorsSize, GL_FLOAT, false, vertexSizeInBytes, (positionsSize * floatSizeInBytes).toLong())
         glEnableVertexAttribArray(1)
+
+        // Uv Attribute
+        GL20.glVertexAttribPointer( 2, uvSize, GL_FLOAT, false, vertexSizeInBytes, ((positionsSize + colorsSize) * floatSizeInBytes).toLong())
+        glEnableVertexAttribArray(2)
     }
 
     override fun update(deltaTime: Float) {
@@ -74,7 +82,10 @@ class LevelEditorScene : Scene() {
         defaultShader.use()
         defaultShader.uploadMatrix4f("uProjection", camera.getProjectionMatrix())
         defaultShader.uploadMatrix4f("uView", camera.getViewMatrix())
-        defaultShader.uploadFloat("uTime", Time.getTime())
+
+        glActiveTexture(GL_TEXTURE0)
+        defaultShader.uploadTexture("tex_sampler", 0)
+        testTexture.bind()
         // Bind vao
         glBindVertexArray(vaoId)
 

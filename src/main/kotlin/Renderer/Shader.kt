@@ -181,6 +181,10 @@ class Shader {
         use()
         glUniform1i(location, i)
     }
+
+    fun uploadTexture(varName: String, tex: Int) {
+        uploadInt(varName, tex)
+    }
     private fun getUniformLocation(varName: String) : Int {
         return glGetUniformLocation(programId, varName)
     }
