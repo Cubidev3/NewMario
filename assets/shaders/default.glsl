@@ -27,6 +27,6 @@ out vec4 color;
 
 void main()
 {
-    color = Texture(tex_sampler, fTexCoords);
+    color = texture(tex_sampler, fTexCoords);
 }
 
