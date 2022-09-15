@@ -26,6 +26,8 @@ object Window {
     var a = 1.0f
 
     fun changeScene(newSceneIdx: Int) {
+        currentScene.isRunning = false
+
         when (newSceneIdx) {
             0 -> {
                 currentScene = LevelScene()
@@ -39,6 +41,7 @@ object Window {
         }
 
         currentScene.init()
+        currentScene.start()
     }
 
     fun run() {

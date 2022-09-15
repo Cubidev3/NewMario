@@ -3,6 +3,8 @@ package jade
 import Renderer.Shader
 import Renderer.Texture
 import Util.Time
+import components.FontRenderer
+import components.SpriteRenderer
 import org.joml.Vector2f
 import org.lwjgl.BufferUtils
 import org.lwjgl.glfw.GLFW.*
@@ -10,6 +12,8 @@ import org.lwjgl.opengl.GL20
 import org.lwjgl.opengl.GL30.*
 
 class LevelEditorScene : Scene() {
+
+    override var camera: Camera = Camera(Vector2f(100f,100f))
     private val defaultShader = Shader("assets/shaders/default.glsl")
     private val testTexture = Texture("assets/textures/sample.png")
 
@@ -32,7 +36,15 @@ class LevelEditorScene : Scene() {
     private var eboId = 0
 
     private val moveSpeed = 100f
+
+    private var firstTime = true
     override fun init() {
+        val testObject = GameObject("test object")
+        testObject.addComponent(SpriteRenderer())
+        testObject.addComponent(FontRenderer())
+        this.addGameObject(testObject)
+
+
         defaultShader.compile()
 
         // Generate VAO, VBO and EBO buffer objects, and send to gpu
@@ -104,7 +116,13 @@ class LevelEditorScene : Scene() {
 
         defaultShader.detach()
 
-        if (GamepadListener.isButtonDown(GLFW_JOYSTICK_1, GLFW_GAMEPAD_BUTTON_B)) println("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")
+        updateGameObjects(deltaTime)
+        if (KeyListener.isKeyDown(GLFW_KEY_A) && firstTime) {
+            val newTestGO = GameObject("new test game object")
+            newTestGO.addComponent(SpriteRenderer())
+            addGameObject(newTestGO)
+            firstTime = false
+        }
     }
 
     fun move(deltaTime: Float) {
