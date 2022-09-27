@@ -1,18 +1,10 @@
 package components
 
 import jade.Component
+import org.joml.Vector4f
 
-class SpriteRenderer : Component() {
-    var isFirstTime = true
-
-    override fun start() {
-        println("Sprite Renderer Starting")
-    }
-
-    override fun update(deltaTime: Float) {
-        if (isFirstTime) {
-            println("Sprite Renderer Updating")
-            isFirstTime = false
-        }
-    }
+data class SpriteRenderer(private var color: Vector4f = Vector4f()) : Component() {
+    override fun start() {}
+    override fun update(deltaTime: Float) {}
+    fun getColor(): Vector4f {return color}
 }

@@ -3,6 +3,7 @@ package jade
 class GameObject {
     var name = ""
     val components = mutableListOf<Component>()
+    var transform = Transform()
 
     constructor(name: String) {
         this.name = name

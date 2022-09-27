@@ -16,34 +16,41 @@ class LevelEditorScene : Scene() {
     override var camera: Camera = Camera(Vector2f(100f,100f))
     private val defaultShader = Shader("assets/shaders/default.glsl")
     private val testTexture = Texture("assets/textures/sample.png")
+    private val testTexture2 = Texture("assets/textures/sample2.jpeg")
 
     private val vertexArray = floatArrayOf(
         // Positions                 // Color                  // UV Coordinates
-        1280f, 0f, 0f,             1f, 0f, 0f, 1f,             1f, 0f, // Bottom Right
-        0f, 672f, 0f,             0f, 1f, 0f, 1f,              0f, 1f, // Top Left
-        1280f, 672f, 0f,              0f, 0f, 1f, 1f,          1f, 1f, // Top Right
-        0f, 0f, 0f,            0f, 0f, 0f, 1f,                 0f, 0f  // Bottom Left
+        1280f, 0f, 0f,               1f, 0f, 0f, 1f,           1f, 0f,    0f,// Bottom Right
+        0f, 672f, 0f,                0f, 1f, 0f, 1f,           0f, 1f,    0f,// Top Left
+        1280f, 672f, 0f,             0f, 0f, 1f, 1f,           1f, 1f,    0f,// Top Right
+        0f, 0f, 0f,                  0f, 0f, 0f, 1f,           0f, 0f,    0f,// Bottom Left
+
+        2560f, 0f, 0f,               1f, 0f, 0f, 1f,           1f, 0f,    1f,// Bottom Right
+        1280f, 672f, 0f,             0f, 1f, 0f, 1f,           0f, 1f,    1f,// Top Left
+        2560f, 672f, 0f,             0f, 0f, 1f, 1f,           1f, 1f,    1f,// Top Right
+        1280f, 0f, 0f,               0f, 0f, 0f, 1f,           0f, 0f,    1f // Bottom Left
     )
 
     // IMPORTANT: This must be in count-clockwise order
     private val elementArray = intArrayOf(
         2,1,0, // top Right triangle
-        0,1,3 // bottom Left Triangle
+        0,1,3, // bottom Left Triangle
+
+        6,5,4,
+        4,5,7
     )
 
     private var vaoId = 0
     private var vboId = 0
     private var eboId = 0
 
-    private val moveSpeed = 100f
+    private val moveSpeed = 150f
+    private val runSpeed = 459f
 
     private var firstTime = true
     override fun init() {
         val testObject = GameObject("test object")
         testObject.addComponent(SpriteRenderer())
-        testObject.addComponent(FontRenderer())
-        this.addGameObject(testObject)
-
 
         defaultShader.compile()
 
@@ -72,8 +79,9 @@ class LevelEditorScene : Scene() {
         val positionsSize = 3
         val colorsSize = 4
         val uvSize = 2
+        val textureIdSize = 1
         val floatSizeInBytes = Float.SIZE_BYTES
-        val vertexSizeInBytes = (positionsSize + colorsSize + uvSize) * floatSizeInBytes
+        val vertexSizeInBytes = (positionsSize + colorsSize + uvSize + textureIdSize) * floatSizeInBytes
 
         // Position Attribute
         glVertexAttribPointer(0, positionsSize, GL_FLOAT, false, vertexSizeInBytes, 0)
@@ -86,6 +94,10 @@ class LevelEditorScene : Scene() {
         // Uv Attribute
         GL20.glVertexAttribPointer( 2, uvSize, GL_FLOAT, false, vertexSizeInBytes, ((positionsSize + colorsSize) * floatSizeInBytes).toLong())
         glEnableVertexAttribArray(2)
+
+        // Texture Id Attribute
+        GL20.glVertexAttribPointer(3, textureIdSize, GL_FLOAT, false, vertexSizeInBytes, ((positionsSize + colorsSize + uvSize) * floatSizeInBytes).toLong())
+        glEnableVertexAttribArray(3)
     }
 
     override fun update(deltaTime: Float) {
@@ -96,14 +108,17 @@ class LevelEditorScene : Scene() {
         defaultShader.uploadMatrix4f("uView", camera.getViewMatrix())
 
         glActiveTexture(GL_TEXTURE0)
-        defaultShader.uploadTexture("tex_sampler", 0)
         testTexture.bind()
+        glActiveTexture(GL_TEXTURE1)
+        testTexture2.bind()
+        defaultShader.uploadIntArray("tex_sampler", intArrayOf(0,1))
         // Bind vao
         glBindVertexArray(vaoId)
 
         // Enable Attributes
         glEnableVertexAttribArray(0)
         glEnableVertexAttribArray(1)
+        glEnableVertexAttribArray(2)
 
         // Draw
         glDrawElements(GL_TRIANGLES, elementArray.size, GL_UNSIGNED_INT, 0)
@@ -111,18 +126,15 @@ class LevelEditorScene : Scene() {
         // Unbind Everything
         glDisableVertexAttribArray(0)
         glDisableVertexAttribArray(1)
+        glDisableVertexAttribArray(2)
 
         glBindVertexArray(0)
 
         defaultShader.detach()
+        testTexture.unbind()
+        testTexture2.unbind()
 
         updateGameObjects(deltaTime)
-        if (KeyListener.isKeyDown(GLFW_KEY_A) && firstTime) {
-            val newTestGO = GameObject("new test game object")
-            newTestGO.addComponent(SpriteRenderer())
-            addGameObject(newTestGO)
-            firstTime = false
-        }
     }
 
     fun move(deltaTime: Float) {
@@ -132,8 +144,10 @@ class LevelEditorScene : Scene() {
         )
         if (!direction.isZero()) direction.normalize()
 
-        camera.cameraPosition.x += direction.x * moveSpeed * deltaTime
-        camera.cameraPosition.y += direction.y * moveSpeed * deltaTime
+        val speed = if (KeyListener.isKeyDown(GLFW_KEY_LEFT_SHIFT)) runSpeed else moveSpeed
+
+        camera.cameraPosition.x += direction.x * speed * deltaTime
+        camera.cameraPosition.y += direction.y * speed * deltaTime
     }
 
     private fun Vector2f.isZero() : Boolean {

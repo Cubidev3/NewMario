@@ -1,5 +1,6 @@
 package Renderer
 
+import jade.Window.a
 import org.joml.*
 import org.lwjgl.BufferUtils
 import org.lwjgl.opengl.GL20.*
@@ -182,9 +183,23 @@ class Shader {
         glUniform1i(location, i)
     }
 
+    fun uploadIntArray(varName: String, array: IntArray) {
+        val location = getUniformLocation(varName)
+        use()
+        glUniform1iv(location, array)
+    }
+
+    fun uploadFloatArray(varName: String, array: FloatArray) {
+        val location = getUniformLocation(varName)
+        use()
+        glUniform1fv(location, array)
+    }
+
     fun uploadTexture(varName: String, tex: Int) {
         uploadInt(varName, tex)
     }
+
+
     private fun getUniformLocation(varName: String) : Int {
         return glGetUniformLocation(programId, varName)
     }

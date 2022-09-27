@@ -9,6 +9,10 @@ class Camera {
     private var projection = Matrix4f()
     var cameraPosition = Vector2f()
 
+    constructor(){
+        cameraPosition = Vector2f()
+        adjustProjection()
+    }
     constructor(position: Vector2f) {
         cameraPosition = position
         adjustProjection()
