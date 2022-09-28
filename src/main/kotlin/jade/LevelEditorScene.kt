@@ -1,13 +1,16 @@
 package jade
 
+import Renderer.Rectangle
 import Renderer.Shader
 import Renderer.Texture
+import Renderer.Vertex
 import Util.Time
 import components.FontRenderer
 import components.SpriteRenderer
 import org.joml.Vector2f
 import org.lwjgl.BufferUtils
 import org.lwjgl.glfw.GLFW.*
+import org.lwjgl.opengl.GL15
 import org.lwjgl.opengl.GL20
 import org.lwjgl.opengl.GL30.*
 
@@ -17,19 +20,6 @@ class LevelEditorScene : Scene() {
     private val defaultShader = Shader("assets/shaders/default.glsl")
     private val testTexture = Texture("assets/textures/sample.png")
     private val testTexture2 = Texture("assets/textures/sample2.jpeg")
-
-    private val vertexArray = floatArrayOf(
-        // Positions                 // Color                  // UV Coordinates
-        1280f, 0f, 0f,               1f, 0f, 0f, 1f,           1f, 0f,    0f,// Bottom Right
-        0f, 672f, 0f,                0f, 1f, 0f, 1f,           0f, 1f,    0f,// Top Left
-        1280f, 672f, 0f,             0f, 0f, 1f, 1f,           1f, 1f,    0f,// Top Right
-        0f, 0f, 0f,                  0f, 0f, 0f, 1f,           0f, 0f,    0f,// Bottom Left
-
-        2560f, 0f, 0f,               1f, 0f, 0f, 1f,           1f, 0f,    1f,// Bottom Right
-        1280f, 672f, 0f,             0f, 1f, 0f, 1f,           0f, 1f,    1f,// Top Left
-        2560f, 672f, 0f,             0f, 0f, 1f, 1f,           1f, 1f,    1f,// Top Right
-        1280f, 0f, 0f,               0f, 0f, 0f, 1f,           0f, 0f,    1f // Bottom Left
-    )
 
     // IMPORTANT: This must be in count-clockwise order
     private val elementArray = intArrayOf(
@@ -58,14 +48,10 @@ class LevelEditorScene : Scene() {
         vaoId = glGenVertexArrays()
         glBindVertexArray(vaoId)
 
-        // Create a float buffer of vertices
-        val vertexBuffer = BufferUtils.createFloatBuffer(vertexArray.size)
-        vertexBuffer.put(vertexArray).flip()
-
         // Create VBO
         vboId = glGenBuffers()
         glBindBuffer(GL_ARRAY_BUFFER, vboId)
-        glBufferData(GL_ARRAY_BUFFER, vertexBuffer, GL_STATIC_DRAW)
+        glBufferData(GL_ARRAY_BUFFER, Vertex.sizeOf().toLong() * 1024, GL_DYNAMIC_DRAW)
 
         // Create Indices and Upload
         val elementBuffer = BufferUtils.createIntBuffer(elementArray.size)
@@ -76,32 +62,50 @@ class LevelEditorScene : Scene() {
         glBufferData(GL_ELEMENT_ARRAY_BUFFER, elementBuffer, GL_STATIC_DRAW)
 
         // Add vertex attribute pointers
-        val positionsSize = 3
-        val colorsSize = 4
-        val uvSize = 2
-        val textureIdSize = 1
-        val floatSizeInBytes = Float.SIZE_BYTES
-        val vertexSizeInBytes = (positionsSize + colorsSize + uvSize + textureIdSize) * floatSizeInBytes
 
         // Position Attribute
-        glVertexAttribPointer(0, positionsSize, GL_FLOAT, false, vertexSizeInBytes, 0)
+        glVertexAttribPointer(0, Vertex.positionSize(), GL_FLOAT, false, Vertex.sizeOf(), Vertex.positionOffset())
         glEnableVertexAttribArray(0)
 
         // Color Attribute
-        glVertexAttribPointer(1, colorsSize, GL_FLOAT, false, vertexSizeInBytes, (positionsSize * floatSizeInBytes).toLong())
+        glVertexAttribPointer(1, Vertex.colorSize(), GL_FLOAT, false, Vertex.sizeOf(), Vertex.colorOffset())
         glEnableVertexAttribArray(1)
 
         // Uv Attribute
-        GL20.glVertexAttribPointer( 2, uvSize, GL_FLOAT, false, vertexSizeInBytes, ((positionsSize + colorsSize) * floatSizeInBytes).toLong())
+        glVertexAttribPointer( 2, Vertex.uvCoordinatesSize(), GL_FLOAT, false, Vertex.sizeOf(), Vertex.uvCoordinatesOffset())
         glEnableVertexAttribArray(2)
 
         // Texture Id Attribute
-        GL20.glVertexAttribPointer(3, textureIdSize, GL_FLOAT, false, vertexSizeInBytes, ((positionsSize + colorsSize + uvSize) * floatSizeInBytes).toLong())
+        glVertexAttribPointer(3, Vertex.textureIdSize(), GL_FLOAT, false, Vertex.sizeOf(), Vertex.textureIdOffset())
         glEnableVertexAttribArray(3)
     }
 
     override fun update(deltaTime: Float) {
         move(deltaTime)
+
+        /*
+        private val vertexArray = floatArrayOf(
+            // Positions                 // Color                  // UV Coordinates
+            1280f, 0f, 0f,               1f, 0f, 0f, 1f,           1f, 0f,    0f,// Bottom Right
+            0f, 672f, 0f,                0f, 1f, 0f, 1f,           0f, 1f,    0f,// Top Left
+            1280f, 672f, 0f,             0f, 0f, 1f, 1f,           1f, 1f,    0f,// Top Right
+            0f, 0f, 0f,                  0f, 0f, 0f, 1f,           0f, 0f,    0f,// Bottom Left
+
+            2560f, 0f, 0f,               1f, 0f, 0f, 1f,           1f, 0f,    1f,// Bottom Right
+            1280f, 672f, 0f,             0f, 1f, 0f, 1f,           0f, 1f,    1f,// Top Left
+            2560f, 672f, 0f,             0f, 0f, 1f, 1f,           1f, 1f,    1f,// Top Right
+            1280f, 0f, 0f,               0f, 0f, 0f, 1f,           0f, 0f,    1f // Bottom Left
+        )
+        */
+
+        val rect1 = Rectangle(0f,0f, 1280f, 672f, (if (KeyListener.isKeyDown(GLFW_KEY_L)) {1f} else {0f}))
+        val rect2 = Rectangle(1280f,0f, 1280f, 672f, 1f)
+        val vertexArray = rect1.toFloatArray().plus(rect2.toFloatArray())
+
+        // Set dynamic vertex buffer data
+        glBindBuffer(GL_ARRAY_BUFFER, vboId)
+        glBufferSubData(GL_ARRAY_BUFFER, 0, vertexArray)
+
         // Bind Program
         defaultShader.use()
         defaultShader.uploadMatrix4f("uProjection", camera.getProjectionMatrix())
