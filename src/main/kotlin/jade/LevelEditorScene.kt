@@ -1,13 +1,11 @@
 package jade
 
-import Renderer.Rectangle
-import Renderer.Shader
-import Renderer.Texture
-import Renderer.Vertex
+import Renderer.*
 import Util.Time
 import components.FontRenderer
 import components.SpriteRenderer
 import org.joml.Vector2f
+import org.joml.Vector3f
 import org.lwjgl.BufferUtils
 import org.lwjgl.glfw.GLFW.*
 import org.lwjgl.opengl.GL15
@@ -37,47 +35,16 @@ class LevelEditorScene : Scene() {
     private val moveSpeed = 150f
     private val runSpeed = 459f
 
+    private var posTest = Vector2f()
+
     private var firstTime = true
+    val batch: Batch = Batch()
     override fun init() {
         val testObject = GameObject("test object")
         testObject.addComponent(SpriteRenderer())
 
         defaultShader.compile()
-
-        // Generate VAO, VBO and EBO buffer objects, and send to gpu
-        vaoId = glGenVertexArrays()
-        glBindVertexArray(vaoId)
-
-        // Create VBO
-        vboId = glGenBuffers()
-        glBindBuffer(GL_ARRAY_BUFFER, vboId)
-        glBufferData(GL_ARRAY_BUFFER, Vertex.sizeOf().toLong() * 1024, GL_DYNAMIC_DRAW)
-
-        // Create Indices and Upload
-        val elementBuffer = BufferUtils.createIntBuffer(elementArray.size)
-        elementBuffer.put(elementArray).flip()
-
-        eboId = glGenBuffers()
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, eboId)
-        glBufferData(GL_ELEMENT_ARRAY_BUFFER, elementBuffer, GL_STATIC_DRAW)
-
-        // Add vertex attribute pointers
-
-        // Position Attribute
-        glVertexAttribPointer(0, Vertex.positionSize(), GL_FLOAT, false, Vertex.sizeOf(), Vertex.positionOffset())
-        glEnableVertexAttribArray(0)
-
-        // Color Attribute
-        glVertexAttribPointer(1, Vertex.colorSize(), GL_FLOAT, false, Vertex.sizeOf(), Vertex.colorOffset())
-        glEnableVertexAttribArray(1)
-
-        // Uv Attribute
-        glVertexAttribPointer( 2, Vertex.uvCoordinatesSize(), GL_FLOAT, false, Vertex.sizeOf(), Vertex.uvCoordinatesOffset())
-        glEnableVertexAttribArray(2)
-
-        // Texture Id Attribute
-        glVertexAttribPointer(3, Vertex.textureIdSize(), GL_FLOAT, false, Vertex.sizeOf(), Vertex.textureIdOffset())
-        glEnableVertexAttribArray(3)
+        batch.init()
     }
 
     override fun update(deltaTime: Float) {
@@ -98,13 +65,10 @@ class LevelEditorScene : Scene() {
         )
         */
 
-        val rect1 = Rectangle(0f,0f, 1280f, 672f, (if (KeyListener.isKeyDown(GLFW_KEY_L)) {1f} else {0f}))
+        val rect1 = Rectangle(posTest.x,posTest.y, 1280f, 672f, (if (KeyListener.isKeyDown(GLFW_KEY_L)) {1f} else {0f}))
         val rect2 = Rectangle(1280f,0f, 1280f, 672f, 1f)
-        val vertexArray = rect1.toFloatArray().plus(rect2.toFloatArray())
-
-        // Set dynamic vertex buffer data
-        glBindBuffer(GL_ARRAY_BUFFER, vboId)
-        glBufferSubData(GL_ARRAY_BUFFER, 0, vertexArray)
+        batch.put(rect1)
+        batch.put(rect2)
 
         // Bind Program
         defaultShader.use()
@@ -116,23 +80,9 @@ class LevelEditorScene : Scene() {
         glActiveTexture(GL_TEXTURE1)
         testTexture2.bind()
         defaultShader.uploadIntArray("tex_sampler", intArrayOf(0,1))
-        // Bind vao
-        glBindVertexArray(vaoId)
 
-        // Enable Attributes
-        glEnableVertexAttribArray(0)
-        glEnableVertexAttribArray(1)
-        glEnableVertexAttribArray(2)
-
-        // Draw
-        glDrawElements(GL_TRIANGLES, elementArray.size, GL_UNSIGNED_INT, 0)
-
-        // Unbind Everything
-        glDisableVertexAttribArray(0)
-        glDisableVertexAttribArray(1)
-        glDisableVertexAttribArray(2)
-
-        glBindVertexArray(0)
+        batch.update()
+        batch.finish()
 
         defaultShader.detach()
         testTexture.unbind()
@@ -150,8 +100,8 @@ class LevelEditorScene : Scene() {
 
         val speed = if (KeyListener.isKeyDown(GLFW_KEY_LEFT_SHIFT)) runSpeed else moveSpeed
 
-        camera.cameraPosition.x += direction.x * speed * deltaTime
-        camera.cameraPosition.y += direction.y * speed * deltaTime
+        posTest.x += direction.x * speed * deltaTime
+        posTest.y += direction.y * speed * deltaTime
     }
 
     private fun Vector2f.isZero() : Boolean {

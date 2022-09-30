@@ -1,15 +1,19 @@
 package Renderer
 
 data class Vertex(
-    var position: FloatArray = floatArrayOf(0f,0f,0f),
-    var color: FloatArray = floatArrayOf(0f,0f,0f,0f),
-    var uvCoordinates: FloatArray = floatArrayOf(0f,0f),
+    var position: FloatArray = FloatArray(posSize),
+    var color: FloatArray = FloatArray(colorSize),
+    var uvCoordinates: FloatArray = FloatArray(uvCoordSize),
     var textureId: Float = 0f
 ) {
 
     companion object {
+        const val posSize = 3
+        const val colorSize = 4
+        const val uvCoordSize = 2
+        const val texIdSize = 1
         fun sizeOf(): Int {
-            return (3 + 4 + 2 + 1) * Float.SIZE_BYTES
+            return (posSize + colorSize + uvCoordSize + texIdSize) * Float.SIZE_BYTES
         }
 
         fun positionOffset(): Long {
@@ -17,21 +21,16 @@ data class Vertex(
         }
 
         fun colorOffset(): Long {
-            return positionOffset() + 3 * Float.SIZE_BYTES
+            return positionOffset() + posSize * Float.SIZE_BYTES
         }
 
         fun uvCoordinatesOffset(): Long {
-            return colorOffset() + 4 * Float.SIZE_BYTES
+            return colorOffset() + colorSize * Float.SIZE_BYTES
         }
 
         fun textureIdOffset(): Long {
-            return uvCoordinatesOffset() + 2 * Float.SIZE_BYTES
+            return uvCoordinatesOffset() + uvCoordSize * Float.SIZE_BYTES
         }
-
-        fun positionSize() : Int {return 3}
-        fun colorSize() : Int {return 4}
-        fun uvCoordinatesSize() : Int {return 3}
-        fun textureIdSize() : Int {return 3}
     }
 
     override fun equals(other: Any?): Boolean {
@@ -57,6 +56,6 @@ data class Vertex(
     }
 
     fun toFloatArray() : FloatArray {
-        return position.plus(color).plus(uvCoordinates).plus(textureId)
+        return position + color + uvCoordinates + textureId
     }
 }
