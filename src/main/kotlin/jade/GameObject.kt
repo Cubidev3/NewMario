@@ -1,13 +1,8 @@
 package jade
 
-class GameObject {
-    var name = ""
+class GameObject(var name: String = "") {
     val components = mutableListOf<Component>()
-    var transform = Transform()
-
-    constructor(name: String) {
-        this.name = name
-    }
+    var transform: Transform = Transform()
 
     fun <T: Component> getComponent(componentClass: Class<T>) : T? {
         for (c in components) {
@@ -35,9 +30,10 @@ class GameObject {
         }
     }
 
-    fun addComponent(component: Component) {
+    fun addComponent(component: Component) : GameObject {
         component.gameObject = this
         components.add(component)
+        return this
     }
 
     fun update(deltaTime: Float) {

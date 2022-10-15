@@ -5,6 +5,10 @@ class Rectangle {
 
     companion object {
         val baseIndices = intArrayOf(2,1,0,0,1,3)
+
+        fun sizeOf() : Int {
+            return 4 * Vertex.sizeOf()
+        }
     }
     constructor(x: Float, y: Float, width: Float, height: Float, texId: Float) {
         val br = Vertex(floatArrayOf(x + width,y,0f), floatArrayOf(0f,0f,0f,1f), floatArrayOf(1f,0f), texId)
@@ -14,11 +18,8 @@ class Rectangle {
 
         verticies = arrayOf(br, tl, tr, bl)
     }
-
-    fun sizeOf() : Int {
-        return verticies.size * Vertex.sizeOf()
-    }
     fun toFloatArray() : FloatArray {
         return verticies[0].toFloatArray() + verticies[1].toFloatArray() + verticies[2].toFloatArray() + verticies[3].toFloatArray()
     }
 }
+

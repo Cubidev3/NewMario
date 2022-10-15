@@ -8,17 +8,14 @@ import org.lwjgl.opengl.GL30
 import org.lwjgl.opengl.GL30.glBindVertexArray
 import org.lwjgl.opengl.GL30.glGenVertexArrays
 
-class Batch {
-
-    companion object {
-        const val size = 1024
-    }
-
+class Batch(val size: Int = 1024) {
     private val rects = mutableListOf<Rectangle>()
 
     private var vaoId = 0
     private var vboId = 0
     private var eboId = 0
+
+    private var auxiliarBatch: Batch? = null
 
     fun init() {
         // Generate VAO, VBO and EBO buffer objects, and send to gpu
@@ -28,11 +25,11 @@ class Batch {
         // Create VBO
         vboId = glGenBuffers()
         glBindBuffer(GL_ARRAY_BUFFER, vboId)
-        glBufferData(GL_ARRAY_BUFFER, Vertex.sizeOf().toLong() * size, GL_DYNAMIC_DRAW)
+        glBufferData(GL_ARRAY_BUFFER, Rectangle.sizeOf().toLong() * size, GL_DYNAMIC_DRAW)
 
         eboId = glGenBuffers()
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, eboId)
-        glBufferData(GL_ELEMENT_ARRAY_BUFFER, Rectangle.baseIndices.size * size.toLong(), GL_DYNAMIC_DRAW)
+        glBufferData(GL_ELEMENT_ARRAY_BUFFER, getIndicesArray(), GL_STATIC_DRAW)
 
         // Add vertex attribute pointers
 
@@ -75,7 +72,18 @@ class Batch {
     }
 
     fun put(rectangle: Rectangle) {
-        if (rects.size * Vertex.sizeOf() >= size) return
+        if (auxiliarBatch != null) {
+            auxiliarBatch!!.put(rectangle)
+            return
+        }
+
+        if (rects.size >= size) {
+            auxiliarBatch = Batch()
+            auxiliarBatch!!.init()
+            auxiliarBatch!!.put(rectangle)
+            return
+        }
+
         rects.add(rectangle)
     }
 
@@ -87,10 +95,6 @@ class Batch {
         // Bind vao
         glBindVertexArray(vaoId)
 
-        // Set indices dynamic buffer data
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, eboId)
-        glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, 0, getIndicesArray())
-
         // Enable Attributes
         glEnableVertexAttribArray(0)
         glEnableVertexAttribArray(1)
@@ -99,9 +103,11 @@ class Batch {
 
         // Draw
         glDrawElements(GL_TRIANGLES, getIndicesSize(), GL_UNSIGNED_INT, 0)
+        auxiliarBatch?.update()
     }
 
     fun finish() {
+        auxiliarBatch = null
         rects.clear()
 
         // Unbind Everything
@@ -111,6 +117,8 @@ class Batch {
         GL30.glDisableVertexAttribArray(3)
 
         glBindVertexArray(0)
+
+        auxiliarBatch?.finish()
     }
 
     fun getVertexArray() : FloatArray {
@@ -118,10 +126,10 @@ class Batch {
     }
 
     fun getIndicesArray() : IntArray {
-        return List(rects.size) { i -> Rectangle.baseIndices.map { it + (4*i) } }.flatten().toIntArray()
+        return List(size) { i -> Rectangle.baseIndices.map { it + 4*i }}.flatten().toIntArray()
     }
 
     fun getIndicesSize() : Int {
-        return rects.size * Rectangle.baseIndices.size
+        return size * Rectangle.baseIndices.size
     }
 }

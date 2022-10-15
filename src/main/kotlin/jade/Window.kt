@@ -167,4 +167,8 @@ object Window {
         glfwTerminate()
         glfwSetErrorCallback(null)?.free()
     }
+
+    fun getCurrentCamera() : Camera {
+        return currentScene.camera
+    }
 }
